@@ -39,3 +39,42 @@ Para forçar o cenário de *oversubscription* e analisar a degradação de desem
 
 ```bash
 mpirun --hostfile hostfile --mca btl_tcp_if_include 192.168.56.0/24 --map-by node --oversubscribe -np 8 ./osu_bcast -i 100 -x 10
+```
+Detalhe Técnico: Os parâmetros -i 100 -x 10 foram injetados no benchmark para limitar a execução a 10 iterações de aquecimento (warmup) e 100 iterações de medição real, otimizando o tempo total do teste sem perder a estabilidade estatística.
+
+☁️ Execução: Ambiente em Nuvem (AWS)
+O experimento em nuvem consiste na comunicação entre duas instâncias isoladas em regiões distintas, conectadas exclusivamente via AWS VPC Peering:
+
+Nó Master (Virgínia - us-east-1): VPC 172.31.0.0/16
+
+Nó Worker (Oregon - us-west-2): VPC 10.0.0.0/16
+
+Comando de Execução (Latência Inter-Regional)
+Devido às rígidas barreiras de rede da nuvem pública (ausência de InfiniBand nativo e bloqueios de broadcast), foi necessário impor regras estritas ao framework MCA do OpenMPI para forçar a rota TCP transcontinental:
+
+```Bash
+mpirun --hostfile hostfile_aws \
+  --mca pml ob1 \
+  --mca btl tcp,self \
+  --mca btl_tcp_if_include 172.31.0.0/16,10.0.0.0/16 \
+  --mca btl_tcp_disable_family IPv6 \
+  --map-by node -np 2 ./osu_latency -i 100 -x 10
+```
+A flag --mca btl_tcp_if_include foi necessário na execução do teste. Ela obriga o plano de dados do MPI a blindar o tráfego nas sub-redes das VPCs emparelhadas, impedindo que o tráfego tente ir para a internet pública ou falhe na tentativa de usar IPv6.
+
+📈 Reprodutibilidade Gráfica
+Para garantir a reprodutibilidade e transparência na geração dos resultados presentes no artigo, os gráficos vetoriais podem ser recriados localmente processando os dados brutos através dos scripts Python disponibilizados.
+
+Com o Matplotlib instalado, execute a partir da raiz do repositório:
+
+```Bash
+# Renderizar resultados do cluster local
+python3 virtualbox/scripts/plotar_graficos_wsl.py
+```
+
+# Renderizar resultados do cluster em nuvem
+python3 aws_nuvem/scripts/plotar_grafico_aws.py
+
+
+
+
