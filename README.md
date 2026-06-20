@@ -1,59 +1,47 @@
-# Avaliação de Desempenho OpenMPI: VirtualBox vs. Nuvem AWS
+# Desempenho OpenMPI: VirtualBox vs. Nuvem AWS
 
-Este repositório contém os artefatos, dados brutos, códigos-fonte modificados e scripts de geração de gráficos utilizados no artigo de uso do VirtualBox e Nuvem para Práticas de Computação
-Distribuída, empregando a suíte OSU Micro-Benchmarks (OMB) v7.3.
+Artefatos, dados brutos, códigos modificados e scripts de plotagem utilizados no artigo sobre o uso de VirtualBox e Nuvem para Práticas de Computação Distribuída (suíte OSU Micro-Benchmarks v7.3).
 
-## 📌 Objetivo do Estudo
+## 📌 Objetivo
 
-O ensino de computação distribuída costuma exigir o acesso a infraestrutura dedicada para isso, como por exemplo, um cluster de computadores. Isso imp˜oe um desafio de acessibilidade ao aprendizado deste assunto. Neste problema, relatamos uma exploração inicial de computac¸ ˜ao em Nuvem e M´aquinas Virtuais como ferramentas que ampliem a acessibilidade ao aprendizado de computac¸ ˜ao distribu´ıda, com os seguintes objetivo:
-* **Configurac¸ ˜ao destas ferramentas
-2. Exemplo de experimentos que podem ser realizados
-3. Requisitos de sistema para que eles sejam realizados
----
-
-## 📁 Estrutura de Diretórios
-
-* `/virtualbox/`: Contém os dados brutos (`.txt`), scripts de plotagem em Python e gráficos (PNG/PDF) extraídos do cluster localizado na máquina hospedeira.
-* `/aws_nuvem/`: Contém os dados consolidados, scripts e gráficos vetoriais comprovando o piso de latência física estabelecido pela distância entre os datacenters (aprox. 4.500 km).
-* `/codigos_modificados/`: Código-fonte em C (`osu_latency.c` e `osu_bcast.c`) alterado com injeção de rotinas `gethostname()`. Essa modificação foi crucial para garantir a rastreabilidade topológica dos Ranks MPI durante a execução nos diferentes nós.
+O ensino de computação distribuída esbarra no custo e na complexidade de manter clusters físicos dedicados. Este trabalho avalia o uso de Máquinas Virtuais locais e Nuvem Pública como alternativas viáveis, focando em três pontos:
+1. Configuração e viabilidade das ferramentas.
+2. Exemplos práticos de experimentos.
+3. Requisitos de sistema necessários.
 
 ---
 
-## 🛠️ Pré-requisitos de Infraestrutura
+## 📁 Estrutura do Repositório
 
-Para reproduzir os testes, os seguintes componentes base foram utilizados:
-* **Ambiente Local:** HashiCorp Vagrant e Oracle VirtualBox.
-* **Ambiente Nuvem:** Instâncias AWS EC2 (t2.micro) distribuídas geograficamente.
-* **Dependências de Software (Ubuntu Linux):**
-  * OpenMPI (`openmpi-bin`, `openmpi-common`, `libopenmpi-dev`)
-  * Ferramentas de compilação C (`build-essential`)
-  * Python 3 e Matplotlib (para a renderização dos gráficos de análise)
+* `/virtualbox/`: Dados brutos (`.txt`), scripts Python e gráficos (PNG/PDF) do cluster local.
+* `/aws_nuvem/`: Dados, scripts e gráficos vetoriais do teste inter-regional (distância de ~4.500 km).
+* `/codigos_modificados/`: Código-fonte em C (`osu_latency.c` e `osu_bcast.c`) com a injeção da rotina `gethostname()` para rastreamento dos Ranks MPI entre os nós.
 
 ---
 
-## 🚀 Execução: Ambiente Local (VirtualBox)
+## 🛠️ Pré-requisitos e Ambiente
 
-O cluster local é composto por 4 máquinas virtuais (1 vCPU, 512MB RAM) interligadas por uma rede privada isolada (Host-Only na sub-rede `192.168.56.0/24`).
+* **Ambiente Local:** Cluster com 4 VMs gerenciadas via Vagrant e Oracle VirtualBox (1 vCPU, 512MB RAM por nó) em rede Host-Only (`192.168.56.0/24`).
+* **Ambiente Nuvem:** 2 instâncias AWS EC2 (t2.micro) conectadas por VPC Peering entre as regiões de Virginia (`us-east-1` / `172.31.0.0/16`) e Oregon (`us-west-2` / `10.0.0.0/16`).
+* **Software Base (Ubuntu):** OpenMPI (`libopenmpi-dev`), `build-essential`, Python 3 e Matplotlib.
 
-### Comando de Execução (Broadcast)
-Para forçar o cenário de *oversubscription* e analisar a degradação de desempenho do hypervisor, escalamos a operação de Broadcast em múltiplos processos. O comando abaixo exemplifica a execução distribuída forçando 8 Ranks concorrentes:
+---
+
+## 🚀 Como Executar os Testes
+
+### 1. Cluster Local (VirtualBox) - Teste de Broadcast
+Cenário de *oversubscription* (8 processos concorrentes em 4 nós) para avaliar o impacto do hypervisor em operações coletivas:
 
 ```bash
 mpirun --hostfile hostfile --mca btl_tcp_if_include 192.168.56.0/24 --map-by node --oversubscribe -np 8 ./osu_bcast -i 100 -x 10
 ```
-Detalhe Técnico: Os parâmetros -i 100 -x 10 foram injetados no benchmark para limitar a execução a 10 iterações de aquecimento (warmup) e 100 iterações de medição real, otimizando o tempo total do teste sem perder a estabilidade estatística.
 
-☁️ Execução: Ambiente em Nuvem (AWS)
-O experimento em nuvem consiste na comunicação entre duas instâncias isoladas em regiões distintas, conectadas exclusivamente via AWS VPC Peering:
+***Nota: As flags -i 100 -x 10 definem 10 iterações de warmup e 100 de medição para garantir estabilidade estatística sem estender o tempo de execução.
 
-Nó Master (Virgínia - us-east-1): VPC 172.31.0.0/16
+## 2. Nuvem AWS - Teste de Latência Inter-Regional
+Medição de latência ponto a ponto através do túnel de VPC Peering:
 
-Nó Worker (Oregon - us-west-2): VPC 10.0.0.0/16
-
-Comando de Execução (Latência Inter-Regional)
-Devido às rígidas barreiras de rede da nuvem pública (ausência de InfiniBand nativo e bloqueios de broadcast), foi necessário impor regras estritas ao framework MCA do OpenMPI para forçar a rota TCP transcontinental:
-
-```Bash
+```bash
 mpirun --hostfile hostfile_aws \
   --mca pml ob1 \
   --mca btl tcp,self \
@@ -61,21 +49,15 @@ mpirun --hostfile hostfile_aws \
   --mca btl_tcp_disable_family IPv6 \
   --map-by node -np 2 ./osu_latency -i 100 -x 10
 ```
-A flag --mca btl_tcp_if_include foi necessário na execução do teste. Ela obriga o plano de dados do MPI a blindar o tráfego nas sub-redes das VPCs emparelhadas, impedindo que o tráfego tente ir para a internet pública ou falhe na tentativa de usar IPv6.
+Nota: A flag --mca btl_tcp_if_include isola o tráfego do MPI dentro das sub-redes das VPCs emparelhadas, impedindo falhas por rotas IPv6 ou tentativas de saída para a internet pública.
 
-📈 Reprodutibilidade Gráfica
-Para garantir a reprodutibilidade e transparência na geração dos resultados presentes no artigo, os gráficos vetoriais podem ser recriados localmente processando os dados brutos através dos scripts Python disponibilizados.
+📈 Geração dos Gráficos
+Para processar os logs brutos e gerar os gráficos vetoriais do artigo, execute a partir da raiz do repositório:
 
-Com o Matplotlib instalado, execute a partir da raiz do repositório:
-
-```Bash
-# Renderizar resultados do cluster local
+```bash
+# Gráficos do ambiente local (VirtualBox)
 python3 virtualbox/scripts/plotar_graficos_wsl.py
+
+# Gráficos do ambiente em nuvem (AWS)
+python3 aws_nuvem/scripts/plotar_graph_aws.py
 ```
-
-# Renderizar resultados do cluster em nuvem
-python3 aws_nuvem/scripts/plotar_grafico_aws.py
-
-
-
-
