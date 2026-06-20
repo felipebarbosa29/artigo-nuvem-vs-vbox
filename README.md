@@ -2,19 +2,23 @@
 
 Este repositório contém os artefatos técnicos, scripts de automação e dados experimentais utilizados no estudo de viabilidade de laboratórios de computação distribuída para a UNIVESP. O projeto foca na acessibilidade, permitindo que alunos repliquem clusters de alto desempenho em hardware modesto ou na nuvem.
 
+> **Nota:** Este estudo integra um projeto de Iniciação Científica (IC) na UNIVESP para avaliar simuladores e ferramentas para o aprendizado de sistemas distribuídos.
+
+---
+
 ## 📌 Visão Geral do Projeto
 
-O trabalho está estruturado em dois pilares principais, conforme descrito no artigo:
+O trabalho está estruturado em dois pilares independentes, conforme as exigências pedagógicas:
 
-1. **Ambiente Local (VirtualBox):** Focado na análise de comunicações coletivas (**Broadcast**) em um cluster de 4 nós.
-2. **Ambiente em Nuvem (AWS):** Focado na medição de **Latência Ponto-a-Ponto** entre regiões geograficamente distantes (Virgínia do Norte e Oregon).
+1.  **Ambiente Local (VirtualBox):** Focado na análise de comunicações coletivas (**Broadcast**) em um cluster de 4 nós.
+2.  **Ambiente em Nuvem (AWS):** Focado na medição de **Latência Ponto-a-Ponto** entre regiões geograficamente distantes (Virgínia do Norte e Oregon).
 
 ---
 
 ## 📁 Estrutura do Repositório
 
 *   `/virtualbox/`: Scripts de automação (Vagrant), guias de instalação manual e dados brutos do teste de Broadcast.
-*   `/aws_nuvem/`: Configurações de rede (VPC Peering) e dados de latência inter-regional.
+*   `/aws_nuvem/`: Configurações de redes virtuais privadas e dados de latência inter-regional.
 *   `/codigos_modificados/`: Código-fonte C dos benchmarks OSU com a inclusão da rotina `gethostname()` para identificação precisa dos nós.
 
 ---
@@ -22,14 +26,21 @@ O trabalho está estruturado em dois pilares principais, conforme descrito no ar
 ## 🛠️ Infraestrutura e Configuração
 
 ### 1. Cluster Local (VirtualBox + Vagrant)
+
 *   **Configuração:** 4 Máquinas Virtuais (Ubuntu 22.04).
 *   **Recursos:** 1 vCPU e 1 GB de RAM por nó.
-*   **Cálculo de Memória:** A alocação total de 4 GB de RAM para as VMs, somada ao consumo do sistema hospedeiro ($\approx$ 2-3 GB), torna o laboratório viável em máquinas com **8 GB de RAM**.
-*   **Automação:** O uso do Vagrant garante que os limites de hardware sejam respeitados e que o ambiente seja idêntico em qualquer computador.
+*   **Cálculo de Memória (Viabilidade em 8 GB):**
+    Para garantir a execução sem travamentos em computadores de 8 GB de RAM, seguimos o orçamento:
+    - **Windows 10/11:** 2,0 GB
+    - **4 VMs (1 GB cada):** 4,0 GB
+    - **Hipervisor (VBox) + Processos:** 0,5 GB
+    - **Total Estimado:** **6,5 GB** (Margem livre de 1,5 GB).
+*   **Automação:** O uso do Vagrant garante que os limites de hardware sejam respeitados.
 
 ### 2. Nuvem AWS
+
 *   **Instâncias:** 2 instâncias `t2.micro` (Free Tier).
-*   **Rede:** Conectividade via **VPC Peering** entre `us-east-1` (Virgínia do Norte) e `us-west-2` (Oregon), cobrindo ~4.500 km.
+*   **Rede:** Conectividade via **redes virtuais privadas** interconectadas entre `us-east-1` (Virgínia do Norte) e `us-west-2` (Oregon), cobrindo ~4.500 km.
 
 ---
 
@@ -42,34 +53,21 @@ mpirun --hostfile hostfile --mca btl_tcp_if_include 192.168.56.0/24 --map-by nod
 ```
 
 ### Teste de Latência (AWS)
-Para medir a latência transcontinental isolando o tráfego no túnel VPC:
+Para medir a latência transcontinental isolando o tráfego nas redes privadas:
 ```bash
 mpirun --hostfile hostfile_aws \
   --mca pml ob1 \
   --mca btl tcp,self \
-  --mca btl_tcp_if_include 172.31.0.0/16,10.0.0.193/32 \
+  --mca btl_tcp_if_include 172.31.0.0/16,10.0.0.0/16 \
   --map-by node -np 2 ./osu_latency -i 100 -x 10
 ```
 
 ---
 
-## 📈 Processamento Visual (Gráficos)
-Os dados brutos coletados estão disponíveis nas pastas de cada ambiente. Para gerar os gráficos apresentados no artigo, execute os scripts Python a partir da raiz do repositório:
-
-```bash
-# Gráficos do cluster local (VirtualBox)
-python3 virtualbox/scripts/plotar_graficos_wsl.py
-
-# Gráficos do ambiente em nuvem (AWS)
-python3 aws_nuvem/scripts/plotar_graph_aws.py
-```
-
-## 🔗 Referências e Documentação
-*   [OSU Micro-Benchmarks](https://mvapich.cse.ohio-state.edu/benchmarks/)
-*   [Documentação OpenMPI](https://www.open-mpi.org/doc/)
-*   [VPC Peering AWS](https://docs.aws.amazon.com/vpc/latest/peering/what-is-vpc-peering.html)
+## 📈 Resultados
+Os resultados detalhados, incluindo os gráficos de latência inter-regional e desempenho de broadcast, estão disponíveis na pasta `/codigos_modificados/graficos/` e no artigo submetido ao ERAD-SP 2026.
 
 ---
-**Autor:** Felipe Barbosa da Silva  
-**Orientador:** Mauricio G. Palma  
-*Universidade Virtual do Estado de São Paulo (UNIVESP)*
+
+## 🎓 Créditos
+Desenvolvido por **Felipe Barbosa da Silva** sob orientação do **Prof. Dr. Mauricio G. Palma** como parte das atividades de Iniciação Científica da UNIVESP.
