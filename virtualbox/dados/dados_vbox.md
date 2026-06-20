@@ -62,4 +62,4 @@ O teste de latência ponto-a-ponto foi executado com 2 processos (`NP=2`), estab
 | 524288 | 9271,52 | 36844,55 | 21803,29 |
 | 1048576 | 20021,94 | 43703,31 | 48089,79 |
 
-**Análise Técnica:** A consolidação dos resultados de *Broadcast* revela o aumento do total de tempo do VirtualBox à medida que o número de processos sofre um incremento. Destaca-se a latência no cenário NP=8 com pequenos pacotes, que apresentou um desvio acentuado em comparação com a execução nativa ou em ambiente *cloud* (AWS). 
+**Análise Técnica:** A consolidação dos resultados de *Broadcast* revela o aumento do total de tempo do VirtualBox à medida que o número de processos sofre um incremento. Destaca-se a latência no cenário NP=8 com pequenos pacotes, que apresentou um desvio acentuado em comparação com a execução nativa ou em ambiente *cloud* (AWS).
