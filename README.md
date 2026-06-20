@@ -16,7 +16,6 @@ O trabalho está estruturado em dois pilares principais, conforme descrito no ar
 *   `/virtualbox/`: Scripts de automação (Vagrant), guias de instalação manual e dados brutos do teste de Broadcast.
 *   `/aws_nuvem/`: Configurações de rede (VPC Peering) e dados de latência inter-regional.
 *   `/codigos_modificados/`: Código-fonte C dos benchmarks OSU com a inclusão da rotina `gethostname()` para identificação precisa dos nós.
-*   `/scripts/`: Scripts Python para geração dos gráficos apresentados no artigo.
 
 ---
 
@@ -54,11 +53,15 @@ mpirun --hostfile hostfile_aws \
 
 ---
 
-## 📈 Resultados e Visualização
-Os dados brutos coletados estão disponíveis nas pastas de cada ambiente. Para gerar os gráficos do artigo, utilize os scripts Python:
+## 📈 Processamento Visual (Gráficos)
+Os dados brutos coletados estão disponíveis nas pastas de cada ambiente. Para gerar os gráficos apresentados no artigo, execute os scripts Python a partir da raiz do repositório:
+
 ```bash
-python3 scripts/plotar_graficos_vbox.py
-python3 scripts/plotar_graficos_aws.py
+# Gráficos do cluster local (VirtualBox)
+python3 virtualbox/scripts/plotar_graficos_wsl.py
+
+# Gráficos do ambiente em nuvem (AWS)
+python3 aws_nuvem/scripts/plotar_graph_aws.py
 ```
 
 ## 🔗 Referências e Documentação
