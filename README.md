@@ -1,13 +1,14 @@
 # Avaliação de Desempenho OpenMPI: VirtualBox vs. Nuvem AWS
 
-Este repositório contém os artefatos, dados brutos, códigos-fonte modificados e scripts de geração de gráficos utilizados no artigo de análise de desempenho do middleware de comunicação OpenMPI, empregando a suíte OSU Micro-Benchmarks (OMB) v7.3.
+Este repositório contém os artefatos, dados brutos, códigos-fonte modificados e scripts de geração de gráficos utilizados no artigo de uso do VirtualBox e Nuvem para Práticas de Computação
+Distribuída, empregando a suíte OSU Micro-Benchmarks (OMB) v7.3.
 
 ## 📌 Objetivo do Estudo
 
-O objetivo central é avaliar e comparar o impacto da infraestrutura subjacente na comunicação de processos MPI. Foram analisados dois cenários distintos:
-1. **Ambiente Local (VirtualBox):** Foco na identificação de gargalos de CPU e Hypervisor durante operações coletivas (`osu_bcast`) em cenários de superlotação de processos (*oversubscription*).
-2. **Ambiente em Nuvem (AWS):** Foco no impacto da distância geográfica física e do isolamento da pilha TCP/IP na latência ponto a ponto (`osu_latency`) utilizando túneis inter-regionais (VPC Peering).
-
+O ensino de computação distribuída costuma exigir o acesso a infraestrutura dedicada para isso, como por exemplo, um cluster de computadores. Isso imp˜oe um desafio de acessibilidade ao aprendizado deste assunto. Neste problema, relatamos uma exploração inicial de computac¸ ˜ao em Nuvem e M´aquinas Virtuais como ferramentas que ampliem a acessibilidade ao aprendizado de computac¸ ˜ao distribu´ıda, com os seguintes objetivo:
+* **Configurac¸ ˜ao destas ferramentas
+2. Exemplo de experimentos que podem ser realizados
+3. Requisitos de sistema para que eles sejam realizados
 ---
 
 ## 📁 Estrutura de Diretórios
