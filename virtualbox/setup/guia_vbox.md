@@ -1,32 +1,32 @@
-# Configuração Manual: VirtualBox
+# Automação do Cluster Local (VirtualBox + Vagrant)
 
-Este documento descreve os passos para a montagem manual do cluster, caso a automação via Vagrant não seja utilizada.
+Este guia descreve como utilizar o Vagrant para criar um cluster de 4 nós de forma automática, garantindo que o ambiente de estudo seja idêntico ao descrito no artigo.
 
-## 1. Criação das Máquinas Virtuais
-1. Criar uma VM base com Ubuntu 22.04 LTS.
-2. Configurar 1 vCPU e 1024 MB de RAM.
-3. Adicionar dois adaptadores de rede:
-   *   **Adaptador 1:** NAT (para acesso à internet).
-   *   **Adaptador 2:** Placa de rede exclusiva de hospedeiro (Host-only) para o tráfego MPI.
+## 1. Por que usar Automação (IaC)?
+A configuração manual de 4 máquinas virtuais é demorada e sujeita a erros (IPs errados, falta de bibliotecas). O Vagrant resolve isso através de um script (`Vagrantfile`) que define toda a infraestrutura como código.
 
-## 2. Tratamento de Conflitos de Clonagem
-Ao clonar uma VM manualmente, é necessário resetar o `machine-id` para evitar que o servidor DHCP atribua o mesmo IP a máquinas diferentes:
+## 2. Orçamento de Memória (Crucial para 8 GB RAM)
+Este laboratório foi projetado para rodar em computadores comuns de alunos da UNIVESP. O cálculo de viabilidade é:
+*   **Sistema Hospedeiro (Windows):** 2,0 GB
+*   **Cluster (4 VMs x 1 GB):** 4,0 GB
+*   **Software de Virtualização:** 0,5 GB
+*   **Total:** **6,5 GB**
 
+Isso deixa uma margem de segurança de **1,5 GB** em máquinas com 8 GB de RAM, permitindo que o aluno navegue no material de aula enquanto o cluster executa.
+
+## 3. Comandos Rápidos
+Para subir o cluster completo:
 ```bash
-sudo rm /etc/machine-id /var/lib/dbus/machine-id
-sudo systemd-machine-id-setup
-sudo reboot
+vagrant up
 ```
 
-## 3. Configuração de Rede Estática (Netplan)
-Edite o arquivo `/etc/netplan/50-cloud-init.yaml` em cada nó para garantir que os IPs não mudem entre reboots:
-
-```yaml
-network:
-  version: 2
-  ethernets:
-    enp0s8:
-      dhcp4: false
-      addresses: [192.168.56.101/24]
+Para acessar o nó mestre:
+```bash
+vagrant ssh node1
 ```
-*Aplique com: `sudo netplan apply`*
+
+## 4. Experimento de Broadcast
+Dentro do cluster, o teste de broadcast avalia como o tempo de comunicação cresce com o aumento de processos:
+```bash
+mpirun --hostfile hostfile -np 4 ./osu_bcast
+```
