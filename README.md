@@ -2,7 +2,7 @@
 
 Este repositório contém os códigos, scripts de automação e dados experimentais referentes ao artigo **"Laboratório Didático de Computação Distribuída em EAD: Estudo de Caso com VirtualBox e AWS"**, submetido à Escola Regional de Alto Desempenho de São Paulo (ERAD-SP 2026).
 
-O objetivo deste projeto de Iniciação Científica da UNIVESP é fornecer ambientes práticos e acessíveis para o ensino de sistemas distribuídos em cursos a distância, permitindo que os alunos observem a comunicação e o compartilhamento de recursos de forma reproduzível.
+Este artigo apresenta dois ambientes práticos para o ensino de computação distribuída: um cluster local com VirtualBox e um cenário em nuvem com AWS. Descrevemos sobre a criação destes ambientes, e também damos um exemplo de uso deles. Utilizamos um exemplo de operação coletiva para o cluster local, e um exemplo de operação ponto-a-ponto no cenário da nuvem. Também levantamos os requisitos mínimos para executar o cluster local. Este trabalho está dentro de um projeto maior que busca desenvolver ferramentas acessíveis para o aprendizado de computação distribuída.
 
 ---
 
